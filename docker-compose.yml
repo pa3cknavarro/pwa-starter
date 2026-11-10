@@ -5,9 +5,9 @@ services:
     restart: unless-stopped
 
     environment:
-      POSTGRES_DB: ecommerce_db
-      POSTGRES_USER: ecommerce_user
-      POSTGRES_PASSWORD: change_this_password
+      POSTGRES_DB: carovet
+      POSTGRES_USER: sa
+      POSTGRES_PASSWORD: P@ssw0rd7852
 
     ports:
       - "5432:5432"
