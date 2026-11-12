@@ -1,0 +1,10 @@
+/Users/patrick/Documents/Projects/CaroVet/ecommerce-pwa/SampleProject/SampleProject.WebClient/obj/Debug/net8.0/rpswa.dswa.cache.json
+/Users/patrick/Documents/Projects/CaroVet/ecommerce-pwa/SampleProject/SampleProject.WebClient/obj/Debug/net8.0/SampleProject.WebClient.GeneratedMSBuildEditorConfig.editorconfig
+/Users/patrick/Documents/Projects/CaroVet/ecommerce-pwa/SampleProject/SampleProject.WebClient/obj/Debug/net8.0/SampleProject.WebClient.AssemblyInfoInputs.cache
+/Users/patrick/Documents/Projects/CaroVet/ecommerce-pwa/SampleProject/SampleProject.WebClient/obj/Debug/net8.0/SampleProject.WebClient.AssemblyInfo.cs
+/Users/patrick/Documents/Projects/CaroVet/ecommerce-pwa/SampleProject/SampleProject.WebClient/obj/Debug/net8.0/SampleProject.WebClient.csproj.CoreCompileInputs.cache
+/Users/patrick/Documents/Projects/CaroVet/ecommerce-pwa/SampleProject/SampleProject.WebClient/obj/Debug/net8.0/SampleProject.WebClient.MvcApplicationPartsAssemblyInfo.cache
+/Users/patrick/Documents/Projects/CaroVet/ecommerce-pwa/SampleProject/SampleProject.WebClient/obj/Debug/net8.0/SampleProject.WebClient.RazorAssemblyInfo.cache
+/Users/patrick/Documents/Projects/CaroVet/ecommerce-pwa/SampleProject/SampleProject.WebClient/obj/Debug/net8.0/SampleProject.WebClient.RazorAssemblyInfo.cs
+/Users/patrick/Documents/Projects/CaroVet/ecommerce-pwa/SampleProject/SampleProject.WebClient/obj/Debug/net8.0/SampleProject.WebClient.sourcelink.json
+/Users/patrick/Documents/Projects/CaroVet/ecommerce-pwa/SampleProject/SampleProject.WebClient/obj/Debug/net8.0/SampleProject.WebClient.csproj.AssemblyReference.cache

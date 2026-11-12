@@ -1,0 +1,38 @@
+
+services:
+  postgres:
+    image: postgres:18
+    container_name: postgres-server
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_USER: sa
+      POSTGRES_DB: carovet
+      POSTGRES_PASSWORD_FILE: /run/secrets/sa_password
+
+    ports:
+      - "127.0.0.1:5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql
+      - ./init-db:/docker-entrypoint-initdb.d:ro
+
+    secrets:
+      - sa_password
+      - dbuser_password
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sa -d carovet"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+
+secrets:
+  sa_password:
+    file: ./secrets/sa_password.txt
+
+  dbuser_password:
+    file: ./secrets/dbuser_password.txt

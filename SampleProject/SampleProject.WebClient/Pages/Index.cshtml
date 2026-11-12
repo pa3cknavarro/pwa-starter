@@ -1,0 +1,48 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home";
+}
+
+<div class="text-center mb-4">
+    <h1 class="display-5">Ecommerce Location Client</h1>
+    <p class="lead text-muted">ASP.NET Core Razor Pages app that consumes <code>SampleProject</code> via the typed client library.</p>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">API Status</h5>
+                @if (Model.ApiStatus == "Connected")
+                {
+                    <p class="text-success fw-semibold">● @Model.ApiStatus</p>
+                    <p class="mb-0">Provinces in API: <strong>@Model.ProvinceCount</strong></p>
+                }
+                else
+                {
+                    <p class="text-danger fw-semibold">● @Model.ApiStatus</p>
+                    <p class="small text-muted">@Model.ErrorMessage</p>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">Browse data</h5>
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2"><a asp-page="/Provinces">Provinces</a> – list, create, delete</li>
+                    <li class="mb-2"><a asp-page="/Cities">Cities</a> – list filtered by province</li>
+                    <li><a asp-page="/Barangays">Barangays</a> – list filtered by province/city</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="alert alert-secondary mt-4 small">
+    <strong>Setup:</strong> Start <code>SampleProject</code> first, then set
+    <code>SampleProject:BaseUrl</code> in <code>appsettings.Development.json</code>
+    to the API’s HTTPS URL (port shown in the API console).
+</div>

@@ -12,12 +12,10 @@ public class AreaAvailable
     [Display(Name = "Area Available Id")]
     public Guid AreaAvailableId { get; set; }
 
-    [Key]
     [Required(ErrorMessage = "Province Id is required.")]
     [Display(Name = "Province Id")]
     public Guid ProvinceId { get; set; }
 
-    [Key]
     [Required(ErrorMessage = "Is Available Id is required.")]
     [Display(Name = "Is Available?")]
     public bool IsAvailable { get; set; }

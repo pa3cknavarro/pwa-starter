@@ -1,0 +1,222 @@
+### ============================================================
+### Ecommerce.Api – Province Feature Sample Requests
+### ============================================================
+### Prerequisites:
+### 1. Run the API:  dotnet run
+### 2. Replace the port if different (check console output)
+### 3. Always include the required API key header
+### ============================================================
+
+@host = https://localhost:7xxx
+@apiKey = demo-api-key-12345
+@contentType = application/json
+
+### ------------------------------------------------------------
+### 1. LIST Provinces (Pagination + Filtering + Sorting + HATEOAS)
+### ------------------------------------------------------------
+### Query params:
+###   page       – 1-based page number (default 1)
+###   pageSize   – items per page (default 10, max 100)
+###   search     – free-text filter on ProvinceName
+###   sortBy     – "name" | "createdOn"
+###   sortOrder  – "asc" | "desc"
+GET {{host}}/api/v1/provinces?page=1&pageSize=10&search=&sortBy=name&sortOrder=asc
+X-Api-Key: {{apiKey}}
+Accept: application/json
+
+###
+
+### ------------------------------------------------------------
+### 2. GET single Province by ID (returns HATEOAS links)
+### ------------------------------------------------------------
+### Replace the GUID with a real ProvinceId from the list response
+GET {{host}}/api/v1/provinces/11111111-1111-1111-1111-111111111111
+X-Api-Key: {{apiKey}}
+Accept: application/json
+
+###
+
+### ------------------------------------------------------------
+### 3. CREATE Province (supports Idempotency-Key)
+### ------------------------------------------------------------
+### Send the same X-Idempotency-Key on retries to avoid duplicates
+POST {{host}}/api/v1/provinces
+X-Api-Key: {{apiKey}}
+X-Idempotency-Key: 550e8400-e29b-41d4-a716-446655440000
+Content-Type: {{contentType}}
+
+{
+  "provinceName": "Davao del Sur",
+  "createdBy": "admin"
+}
+
+###
+
+### ------------------------------------------------------------
+### 4. UPDATE Province (full replace of name)
+### ------------------------------------------------------------
+PUT {{host}}/api/v1/provinces/11111111-1111-1111-1111-111111111111
+X-Api-Key: {{apiKey}}
+X-Idempotency-Key: 660e8400-e29b-41d4-a716-446655440001
+Content-Type: {{contentType}}
+
+{
+  "provinceName": "National Capital Region"
+}
+
+###
+
+### ------------------------------------------------------------
+### 5. DELETE Province
+### ------------------------------------------------------------
+DELETE {{host}}/api/v1/provinces/22222222-2222-2222-2222-222222222222
+X-Api-Key: {{apiKey}}
+X-Idempotency-Key: 770e8400-e29b-41d4-a716-446655440002
+
+###
+
+### ------------------------------------------------------------
+### 6. Versioning examples
+### ------------------------------------------------------------
+### Via URL segment (preferred)
+GET {{host}}/api/v1/provinces
+X-Api-Key: {{apiKey}}
+
+###
+### Via header
+GET {{host}}/api/provinces
+X-Api-Key: {{apiKey}}
+X-Api-Version: 1.0
+
+###
+### Via query string
+GET {{host}}/api/provinces?api-version=1.0
+X-Api-Key: {{apiKey}}
+
+###
+
+### ------------------------------------------------------------
+### 7. Error examples (for testing ErrorEnvelope)
+### ------------------------------------------------------------
+### Missing API key → 401
+GET {{host}}/api/v1/provinces
+
+###
+### Non-existent ID → 404
+GET {{host}}/api/v1/provinces/00000000-0000-0000-0000-000000000000
+X-Api-Key: {{apiKey}}
+
+###
+### Validation failure → 400
+POST {{host}}/api/v1/provinces
+X-Api-Key: {{apiKey}}
+Content-Type: {{contentType}}
+
+{
+  "provinceName": ""
+}
+
+### ============================================================
+### City Feature Sample Requests
+### ============================================================
+
+### LIST Cities (optional provinceId filter + pagination + sort)
+GET {{host}}/api/v1/cities?page=1&pageSize=10&sortBy=name&sortOrder=asc
+X-Api-Key: {{apiKey}}
+
+###
+
+### LIST Cities filtered by province
+GET {{host}}/api/v1/cities?provinceId=11111111-1111-1111-1111-111111111111&page=1&pageSize=10
+X-Api-Key: {{apiKey}}
+
+###
+
+### GET single City (composite key)
+GET {{host}}/api/v1/cities/11111111-1111-1111-1111-111111111111/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
+X-Api-Key: {{apiKey}}
+
+###
+
+### CREATE City
+POST {{host}}/api/v1/cities
+X-Api-Key: {{apiKey}}
+X-Idempotency-Key: 880e8400-e29b-41d4-a716-446655440003
+Content-Type: application/json
+
+{
+  "provinceId": "11111111-1111-1111-1111-111111111111",
+  "cityName": "Quezon City",
+  "zipCode": "1100",
+  "createdBy": "admin"
+}
+
+###
+
+### UPDATE City
+PUT {{host}}/api/v1/cities/11111111-1111-1111-1111-111111111111/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
+X-Api-Key: {{apiKey}}
+Content-Type: application/json
+
+{
+  "cityName": "Makati City",
+  "zipCode": "1200"
+}
+
+###
+
+### DELETE City
+DELETE {{host}}/api/v1/cities/11111111-1111-1111-1111-111111111111/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
+X-Api-Key: {{apiKey}}
+
+### ============================================================
+### Barangay Feature Sample Requests
+### ============================================================
+
+### LIST Barangays (optional provinceId / cityId + pagination + sort)
+GET {{host}}/api/v1/barangays?page=1&pageSize=10&sortBy=name&sortOrder=asc
+X-Api-Key: {{apiKey}}
+
+###
+
+### LIST Barangays filtered by province + city
+GET {{host}}/api/v1/barangays?provinceId=11111111-1111-1111-1111-111111111111&cityId=aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa&page=1&pageSize=10
+X-Api-Key: {{apiKey}}
+
+###
+
+### GET single Barangay (3-part composite key)
+GET {{host}}/api/v1/barangays/11111111-1111-1111-1111-111111111111/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa/bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
+X-Api-Key: {{apiKey}}
+
+###
+
+### CREATE Barangay
+POST {{host}}/api/v1/barangays
+X-Api-Key: {{apiKey}}
+X-Idempotency-Key: 990e8400-e29b-41d4-a716-446655440004
+Content-Type: application/json
+
+{
+  "provinceId": "11111111-1111-1111-1111-111111111111",
+  "cityId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+  "barangayName": "San Antonio",
+  "createdBy": "admin"
+}
+
+###
+
+### UPDATE Barangay
+PUT {{host}}/api/v1/barangays/11111111-1111-1111-1111-111111111111/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa/bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
+X-Api-Key: {{apiKey}}
+Content-Type: application/json
+
+{
+  "barangayName": "Poblacion (Updated)"
+}
+
+###
+
+### DELETE Barangay
+DELETE {{host}}/api/v1/barangays/11111111-1111-1111-1111-111111111111/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa/bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
+X-Api-Key: {{apiKey}}

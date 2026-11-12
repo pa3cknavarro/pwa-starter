@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
-[PrimaryKey(nameof(CityId))]
+[PrimaryKey(nameof(ProvinceId), nameof(CityId))] // composite primary key
 public class City
 {
     [Key]

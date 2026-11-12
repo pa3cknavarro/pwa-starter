@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cities – Sample Page</title>
+  <style>
+    :root {
+      --bg: #0f172a; --card: #1e293b; --border: #334155;
+      --text: #e2e8f0; --muted: #94a3b8; --accent: #38bdf8;
+      --success: #22c55e; --danger: #ef4444;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: var(--bg); color: var(--text);
+      margin: 0; padding: 1.5rem; line-height: 1.5;
+    }
+    h1, h2 { margin-top: 0; }
+    a { color: var(--accent); }
+    .card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1.25rem; margin-bottom: 1.25rem;
+    }
+    .row { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: end; }
+    label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 0.25rem; }
+    input, select, button {
+      font: inherit; padding: 0.5rem 0.75rem; border-radius: 8px;
+      border: 1px solid var(--border); background: #0f172a; color: var(--text);
+    }
+    button {
+      background: var(--accent); color: #0f172a; border: none;
+      cursor: pointer; font-weight: 600;
+    }
+    button.secondary { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+    button.danger { background: var(--danger); color: #fff; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+    th, td { text-align: left; padding: 0.6rem 0.5rem; border-bottom: 1px solid var(--border); }
+    th { color: var(--muted); font-weight: 600; }
+    .muted { color: var(--muted); font-size: 0.85rem; }
+    .status { padding: 0.75rem; border-radius: 8px; margin-top: 0.75rem; white-space: pre-wrap; font-family: ui-monospace, monospace; font-size: 0.85rem; }
+    .status.ok { background: #14532d33; border: 1px solid var(--success); }
+    .status.err { background: #7f1d1d33; border: 1px solid var(--danger); }
+    .links { font-size: 0.8rem; }
+    .links a { margin-right: 0.5rem; }
+    nav { margin-bottom: 1.5rem; }
+    nav a { margin-right: 1rem; }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="provinces.html">Provinces</a>
+    <a href="cities.html"><strong>Cities</strong></a>
+  </nav>
+
+  <h1>Cities Sample Page</h1>
+  <p class="muted">Demonstrates list (filter by province, pagination, sort), create, update, delete.</p>
+
+  <!-- List controls -->
+  <div class="card">
+    <h2>List Cities</h2>
+    <div class="row">
+      <div>
+        <label>Province (optional filter)</label>
+        <select id="provinceFilter">
+          <option value="">— All provinces —</option>
+        </select>
+      </div>
+      <div>
+        <label>Search</label>
+        <input id="search" type="text" placeholder="e.g. Makati" />
+      </div>
+      <div>
+        <label>Sort by</label>
+        <select id="sortBy">
+          <option value="name">Name</option>
+          <option value="zipCode">Zip Code</option>
+          <option value="createdOn">Created On</option>
+        </select>
+      </div>
+      <div>
+        <label>Order</label>
+        <select id="sortOrder">
+          <option value="asc">Asc</option>
+          <option value="desc">Desc</option>
+        </select>
+      </div>
+      <div>
+        <label>Page size</label>
+        <select id="pageSize">
+          <option>5</option>
+          <option selected>10</option>
+          <option>20</option>
+        </select>
+      </div>
+      <button id="btnLoad">Load</button>
+    </div>
+    <div id="listStatus" class="status" style="display:none"></div>
+    <div style="overflow-x:auto; margin-top:1rem">
+      <table>
+        <thead>
+          <tr>
+            <th>City</th>
+            <th>Zip</th>
+            <th>Province Id</th>
+            <th>Created</th>
+            <th>Links</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div class="row" style="margin-top:0.75rem">
+      <button class="secondary" id="btnPrev" disabled>← Prev</button>
+      <span id="pageInfo" class="muted"></span>
+      <button class="secondary" id="btnNext" disabled>Next →</button>
+    </div>
+  </div>
+
+  <!-- Create form -->
+  <div class="card">
+    <h2>Create City</h2>
+    <div class="row">
+      <div>
+        <label>Province *</label>
+        <select id="createProvince"></select>
+      </div>
+      <div>
+        <label>City Name *</label>
+        <input id="createName" type="text" placeholder="e.g. Quezon City" />
+      </div>
+      <div>
+        <label>Zip Code</label>
+        <input id="createZip" type="text" placeholder="1100" />
+      </div>
+      <div>
+        <label>Created By</label>
+        <input id="createBy" type="text" value="demo-user" />
+      </div>
+      <button id="btnCreate">Create</button>
+    </div>
+    <div id="createStatus" class="status" style="display:none"></div>
+  </div>
+
+  <script src="api-client.js"></script>
+  <script>
+    let currentPage = 1;
+    let totalPages = 1;
+    let provincesCache = [];
+
+    function showStatus(el, ok, payload) {
+      el.style.display = 'block';
+      el.className = 'status ' + (ok ? 'ok' : 'err');
+      el.textContent = typeof payload === 'string' ? payload : JSON.stringify(payload, null, 2);
+    }
+
+    function escapeHtml(s) {
+      return String(s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // Load provinces for the filter + create dropdowns
+    async function loadProvincesDropdown() {
+      const res = await ApiClient.get('/api/v1/provinces', { page: 1, pageSize: 100 });
+      if (!res.ok) return;
+      provincesCache = res.data.items || [];
+
+      const filterSel = document.getElementById('provinceFilter');
+      const createSel = document.getElementById('createProvince');
+      // keep the "All" option
+      filterSel.innerHTML = '<option value="">— All provinces —</option>';
+      createSel.innerHTML = '';
+
+      provincesCache.forEach(p => {
+        const opt1 = document.createElement('option');
+        opt1.value = p.provinceId;
+        opt1.textContent = p.provinceName;
+        filterSel.appendChild(opt1);
+
+        const opt2 = document.createElement('option');
+        opt2.value = p.provinceId;
+        opt2.textContent = p.provinceName;
+        createSel.appendChild(opt2);
+      });
+    }
+
+    async function loadCities() {
+      const provinceId = document.getElementById('provinceFilter').value;
+      const search = document.getElementById('search').value.trim();
+      const sortBy = document.getElementById('sortBy').value;
+      const sortOrder = document.getElementById('sortOrder').value;
+      const pageSize = document.getElementById('pageSize').value;
+
+      const query = { page: currentPage, pageSize, search, sortBy, sortOrder };
+      if (provinceId) query.provinceId = provinceId;
+
+      const res = await ApiClient.get('/api/v1/cities', query);
+      const statusEl = document.getElementById('listStatus');
+
+      if (!res.ok) {
+        showStatus(statusEl, false, res.data || res.error);
+        return;
+      }
+      statusEl.style.display = 'none';
+
+      const data = res.data;
+      totalPages = data.totalPages || 1;
+      document.getElementById('pageInfo').textContent =
+        `Page ${data.page} of ${totalPages} · ${data.totalCount} total`;
+
+      document.getElementById('btnPrev').disabled = data.page <= 1;
+      document.getElementById('btnNext').disabled = data.page >= totalPages;
+
+      const tbody = document.getElementById('tbody');
+      tbody.innerHTML = '';
+      (data.items || []).forEach(c => {
+        const tr = document.createElement('tr');
+        const linksHtml = (c.links || [])
+          .map(l => `<a href="${l.href}" target="_blank" title="${l.method}">${l.rel}</a>`)
+          .join(' ');
+        tr.innerHTML = `
+          <td>${escapeHtml(c.cityName)}</td>
+          <td>${escapeHtml(c.zipCode || '')}</td>
+          <td class="muted" style="font-size:0.75rem">${c.provinceId}</td>
+          <td>${new Date(c.createdOn).toLocaleString()}</td>
+          <td class="links">${linksHtml}</td>
+          <td>
+            <button class="secondary btn-edit"
+              data-province="${c.provinceId}" data-city="${c.cityId}"
+              data-name="${escapeHtml(c.cityName)}" data-zip="${escapeHtml(c.zipCode || '')}">Edit</button>
+            <button class="danger btn-del"
+              data-province="${c.provinceId}" data-city="${c.cityId}">Delete</button>
+          </td>`;
+        tbody.appendChild(tr);
+      });
+
+      tbody.querySelectorAll('.btn-del').forEach(btn => {
+        btn.addEventListener('click', () =>
+          deleteCity(btn.dataset.province, btn.dataset.city));
+      });
+      tbody.querySelectorAll('.btn-edit').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const name = prompt('City name:', btn.dataset.name);
+          if (name === null) return;
+          const zip = prompt('Zip code:', btn.dataset.zip);
+          updateCity(btn.dataset.province, btn.dataset.city, name, zip ?? '');
+        });
+      });
+    }
+
+    async function createCity() {
+      const provinceId = document.getElementById('createProvince').value;
+      const name = document.getElementById('createName').value.trim();
+      const zip = document.getElementById('createZip').value.trim();
+      const createdBy = document.getElementById('createBy').value.trim() || 'demo-user';
+      const statusEl = document.getElementById('createStatus');
+
+      if (!provinceId || !name) {
+        showStatus(statusEl, false, { title: 'Validation', detail: 'Province and City Name are required' });
+        return;
+      }
+
+      const idemKey = crypto.randomUUID();
+      const res = await ApiClient.post('/api/v1/cities', {
+        provinceId,
+        cityName: name,
+        zipCode: zip,
+        createdBy
+      }, idemKey);
+
+      showStatus(statusEl, res.ok, res.data || res.error);
+      if (res.ok) {
+        document.getElementById('createName').value = '';
+        document.getElementById('createZip').value = '';
+        currentPage = 1;
+        await loadCities();
+      }
+    }
+
+    async function updateCity(provinceId, cityId, name, zip) {
+      const res = await ApiClient.put(`/api/v1/cities/${provinceId}/${cityId}`, {
+        cityName: name,
+        zipCode: zip
+      });
+      if (!res.ok) {
+        alert('Update failed:\n' + JSON.stringify(res.data || res.error, null, 2));
+        return;
+      }
+      await loadCities();
+    }
+
+    async function deleteCity(provinceId, cityId) {
+      if (!confirm('Delete this city?')) return;
+      const res = await ApiClient.delete(`/api/v1/cities/${provinceId}/${cityId}`);
+      if (!res.ok && res.status !== 204) {
+        alert('Delete failed:\n' + JSON.stringify(res.data || res.error, null, 2));
+        return;
+      }
+      await loadCities();
+    }
+
+    document.getElementById('btnLoad').addEventListener('click', () => { currentPage = 1; loadCities(); });
+    document.getElementById('btnPrev').addEventListener('click', () => { currentPage--; loadCities(); });
+    document.getElementById('btnNext').addEventListener('click', () => { currentPage++; loadCities(); });
+    document.getElementById('btnCreate').addEventListener('click', createCity);
+
+    // Bootstrap
+    (async () => {
+      await loadProvincesDropdown();
+      await loadCities();
+    })();
+  </script>
+</body>
+</html>

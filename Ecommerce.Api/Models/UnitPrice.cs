@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
-[PrimaryKey(nameof(UnitPriceId))]
+[PrimaryKey(nameof(ProductId), nameof(UomId), nameof(UnitPriceId))] // composite primary key
 public class UnitPrice
 {
     [Key]

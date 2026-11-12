@@ -1,0 +1,76 @@
+@page
+@model ProvincesModel
+@{
+    ViewData["Title"] = "Provinces";
+}
+
+<h1>Provinces</h1>
+<p class="text-muted">Data loaded from <code>SampleProject</code> via <code>SampleProjectClient</code>.</p>
+
+@if (!string.IsNullOrEmpty(Model.Message))
+{
+    <div class="alert alert-success">@Model.Message</div>
+}
+@if (!string.IsNullOrEmpty(Model.Error))
+{
+    <div class="alert alert-danger">@Model.Error</div>
+}
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-auto">
+        <input asp-for="Search" class="form-control" placeholder="Search…" />
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-outline-primary">Filter</button>
+    </div>
+</form>
+
+<form method="post" asp-page-handler="Create" class="row g-2 mb-4">
+    <div class="col-auto">
+        <input asp-for="NewProvinceName" class="form-control" placeholder="New province name" />
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-primary">Create</button>
+    </div>
+</form>
+
+@if (Model.Result is not null)
+{
+    <table class="table table-sm table-striped">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Created By</th>
+                <th>Created On</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var p in Model.Result.Items)
+        {
+            <tr>
+                <td>@p.ProvinceName</td>
+                <td>@p.CreatedBy</td>
+                <td>@p.CreatedOn.ToLocalTime().ToString("g")</td>
+                <td>
+                    <form method="post" asp-page-handler="Delete" asp-route-id="@p.ProvinceId" class="d-inline"
+                          onsubmit="return confirm('Delete this province?');">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+    <p class="text-muted small">
+        Page @Model.Result.Page of @Model.Result.TotalPages · @Model.Result.TotalCount total
+        @if (Model.Result.Page > 1)
+        {
+            <a asp-page="./Provinces" asp-route-PageNumber="@(Model.Result.Page - 1)" asp-route-Search="@Model.Search">← Prev</a>
+        }
+        @if (Model.Result.Page < Model.Result.TotalPages)
+        {
+            <a asp-page="./Provinces" asp-route-PageNumber="@(Model.Result.Page + 1)" asp-route-Search="@Model.Search">Next →</a>
+        }
+    </p>
+}

@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Barangays – Sample Page</title>
+  <style>
+    :root {
+      --bg: #0f172a; --card: #1e293b; --border: #334155;
+      --text: #e2e8f0; --muted: #94a3b8; --accent: #38bdf8;
+      --success: #22c55e; --danger: #ef4444;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: var(--bg); color: var(--text);
+      margin: 0; padding: 1.5rem; line-height: 1.5;
+    }
+    h1, h2 { margin-top: 0; }
+    a { color: var(--accent); }
+    .card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1.25rem; margin-bottom: 1.25rem;
+    }
+    .row { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: end; }
+    label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 0.25rem; }
+    input, select, button {
+      font: inherit; padding: 0.5rem 0.75rem; border-radius: 8px;
+      border: 1px solid var(--border); background: #0f172a; color: var(--text);
+    }
+    button {
+      background: var(--accent); color: #0f172a; border: none;
+      cursor: pointer; font-weight: 600;
+    }
+    button.secondary { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+    button.danger { background: var(--danger); color: #fff; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+    th, td { text-align: left; padding: 0.6rem 0.5rem; border-bottom: 1px solid var(--border); }
+    th { color: var(--muted); font-weight: 600; }
+    .muted { color: var(--muted); font-size: 0.85rem; }
+    .status { padding: 0.75rem; border-radius: 8px; margin-top: 0.75rem; white-space: pre-wrap; font-family: ui-monospace, monospace; font-size: 0.85rem; }
+    .status.ok { background: #14532d33; border: 1px solid var(--success); }
+    .status.err { background: #7f1d1d33; border: 1px solid var(--danger); }
+    .links { font-size: 0.8rem; }
+    .links a { margin-right: 0.5rem; }
+    nav { margin-bottom: 1.5rem; }
+    nav a { margin-right: 1rem; }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="provinces.html">Provinces</a>
+    <a href="cities.html">Cities</a>
+    <a href="barangays.html"><strong>Barangays</strong></a>
+  </nav>
+
+  <h1>Barangays Sample Page</h1>
+  <p class="muted">Demonstrates list (filter by province/city, pagination, sort), create, update, delete.</p>
+
+  <!-- List controls -->
+  <div class="card">
+    <h2>List Barangays</h2>
+    <div class="row">
+      <div>
+        <label>Province (optional)</label>
+        <select id="provinceFilter">
+          <option value="">— All provinces —</option>
+        </select>
+      </div>
+      <div>
+        <label>City (optional)</label>
+        <select id="cityFilter">
+          <option value="">— All cities —</option>
+        </select>
+      </div>
+      <div>
+        <label>Search</label>
+        <input id="search" type="text" placeholder="e.g. Poblacion" />
+      </div>
+      <div>
+        <label>Sort by</label>
+        <select id="sortBy">
+          <option value="name">Name</option>
+          <option value="createdOn">Created On</option>
+        </select>
+      </div>
+      <div>
+        <label>Order</label>
+        <select id="sortOrder">
+          <option value="asc">Asc</option>
+          <option value="desc">Desc</option>
+        </select>
+      </div>
+      <div>
+        <label>Page size</label>
+        <select id="pageSize">
+          <option>5</option>
+          <option selected>10</option>
+          <option>20</option>
+        </select>
+      </div>
+      <button id="btnLoad">Load</button>
+    </div>
+    <div id="listStatus" class="status" style="display:none"></div>
+    <div style="overflow-x:auto; margin-top:1rem">
+      <table>
+        <thead>
+          <tr>
+            <th>Barangay</th>
+            <th>City Id</th>
+            <th>Province Id</th>
+            <th>Created</th>
+            <th>Links</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div class="row" style="margin-top:0.75rem">
+      <button class="secondary" id="btnPrev" disabled>← Prev</button>
+      <span id="pageInfo" class="muted"></span>
+      <button class="secondary" id="btnNext" disabled>Next →</button>
+    </div>
+  </div>
+
+  <!-- Create form -->
+  <div class="card">
+    <h2>Create Barangay</h2>
+    <div class="row">
+      <div>
+        <label>Province *</label>
+        <select id="createProvince"></select>
+      </div>
+      <div>
+        <label>City *</label>
+        <select id="createCity"></select>
+      </div>
+      <div>
+        <label>Barangay Name *</label>
+        <input id="createName" type="text" placeholder="e.g. San Antonio" />
+      </div>
+      <div>
+        <label>Created By</label>
+        <input id="createBy" type="text" value="demo-user" />
+      </div>
+      <button id="btnCreate">Create</button>
+    </div>
+    <div id="createStatus" class="status" style="display:none"></div>
+  </div>
+
+  <script src="api-client.js"></script>
+  <script>
+    let currentPage = 1;
+    let totalPages = 1;
+    let provincesCache = [];
+    let citiesCache = [];
+
+    function showStatus(el, ok, payload) {
+      el.style.display = 'block';
+      el.className = 'status ' + (ok ? 'ok' : 'err');
+      el.textContent = typeof payload === 'string' ? payload : JSON.stringify(payload, null, 2);
+    }
+
+    function escapeHtml(s) {
+      return String(s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    async function loadProvinces() {
+      const res = await ApiClient.get('/api/v1/provinces', { page: 1, pageSize: 100 });
+      if (!res.ok) return;
+      provincesCache = res.data.items || [];
+
+      const filterSel = document.getElementById('provinceFilter');
+      const createSel = document.getElementById('createProvince');
+      filterSel.innerHTML = '<option value="">— All provinces —</option>';
+      createSel.innerHTML = '';
+
+      provincesCache.forEach(p => {
+        const o1 = document.createElement('option');
+        o1.value = p.provinceId;
+        o1.textContent = p.provinceName;
+        filterSel.appendChild(o1);
+
+        const o2 = document.createElement('option');
+        o2.value = p.provinceId;
+        o2.textContent = p.provinceName;
+        createSel.appendChild(o2);
+      });
+    }
+
+    async function loadCities(provinceId, targetSelectId, keepAllOption) {
+      const query = { page: 1, pageSize: 100 };
+      if (provinceId) query.provinceId = provinceId;
+
+      const res = await ApiClient.get('/api/v1/cities', query);
+      const cities = res.ok ? (res.data.items || []) : [];
+      if (!provinceId) citiesCache = cities;
+
+      const sel = document.getElementById(targetSelectId);
+      sel.innerHTML = keepAllOption ? '<option value="">— All cities —</option>' : '';
+
+      cities.forEach(c => {
+        const o = document.createElement('option');
+        o.value = c.cityId;
+        o.textContent = c.cityName;
+        o.dataset.provinceId = c.provinceId;
+        sel.appendChild(o);
+      });
+    }
+
+    async function loadBarangays() {
+      const provinceId = document.getElementById('provinceFilter').value;
+      const cityId = document.getElementById('cityFilter').value;
+      const search = document.getElementById('search').value.trim();
+      const sortBy = document.getElementById('sortBy').value;
+      const sortOrder = document.getElementById('sortOrder').value;
+      const pageSize = document.getElementById('pageSize').value;
+
+      const query = { page: currentPage, pageSize, search, sortBy, sortOrder };
+      if (provinceId) query.provinceId = provinceId;
+      if (cityId) query.cityId = cityId;
+
+      const res = await ApiClient.get('/api/v1/barangays', query);
+      const statusEl = document.getElementById('listStatus');
+
+      if (!res.ok) {
+        showStatus(statusEl, false, res.data || res.error);
+        return;
+      }
+      statusEl.style.display = 'none';
+
+      const data = res.data;
+      totalPages = data.totalPages || 1;
+      document.getElementById('pageInfo').textContent =
+        `Page ${data.page} of ${totalPages} · ${data.totalCount} total`;
+
+      document.getElementById('btnPrev').disabled = data.page <= 1;
+      document.getElementById('btnNext').disabled = data.page >= totalPages;
+
+      const tbody = document.getElementById('tbody');
+      tbody.innerHTML = '';
+      (data.items || []).forEach(b => {
+        const tr = document.createElement('tr');
+        const linksHtml = (b.links || [])
+          .map(l => `<a href="${l.href}" target="_blank" title="${l.method}">${l.rel}</a>`)
+          .join(' ');
+        tr.innerHTML = `
+          <td>${escapeHtml(b.barangayName)}</td>
+          <td class="muted" style="font-size:0.75rem">${b.cityId}</td>
+          <td class="muted" style="font-size:0.75rem">${b.provinceId}</td>
+          <td>${new Date(b.createdOn).toLocaleString()}</td>
+          <td class="links">${linksHtml}</td>
+          <td>
+            <button class="secondary btn-edit"
+              data-province="${b.provinceId}" data-city="${b.cityId}" data-barangay="${b.barangayId}"
+              data-name="${escapeHtml(b.barangayName)}">Edit</button>
+            <button class="danger btn-del"
+              data-province="${b.provinceId}" data-city="${b.cityId}" data-barangay="${b.barangayId}">Delete</button>
+          </td>`;
+        tbody.appendChild(tr);
+      });
+
+      tbody.querySelectorAll('.btn-del').forEach(btn => {
+        btn.addEventListener('click', () =>
+          deleteBarangay(btn.dataset.province, btn.dataset.city, btn.dataset.barangay));
+      });
+      tbody.querySelectorAll('.btn-edit').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const name = prompt('Barangay name:', btn.dataset.name);
+          if (name) updateBarangay(btn.dataset.province, btn.dataset.city, btn.dataset.barangay, name);
+        });
+      });
+    }
+
+    async function createBarangay() {
+      const provinceId = document.getElementById('createProvince').value;
+      const cityId = document.getElementById('createCity').value;
+      const name = document.getElementById('createName').value.trim();
+      const createdBy = document.getElementById('createBy').value.trim() || 'demo-user';
+      const statusEl = document.getElementById('createStatus');
+
+      if (!provinceId || !cityId || !name) {
+        showStatus(statusEl, false, { title: 'Validation', detail: 'Province, City and Barangay Name are required' });
+        return;
+      }
+
+      const idemKey = crypto.randomUUID();
+      const res = await ApiClient.post('/api/v1/barangays', {
+        provinceId,
+        cityId,
+        barangayName: name,
+        createdBy
+      }, idemKey);
+
+      showStatus(statusEl, res.ok, res.data || res.error);
+      if (res.ok) {
+        document.getElementById('createName').value = '';
+        currentPage = 1;
+        await loadBarangays();
+      }
+    }
+
+    async function updateBarangay(provinceId, cityId, barangayId, name) {
+      const res = await ApiClient.put(
+        `/api/v1/barangays/${provinceId}/${cityId}/${barangayId}`,
+        { barangayName: name }
+      );
+      if (!res.ok) {
+        alert('Update failed:\n' + JSON.stringify(res.data || res.error, null, 2));
+        return;
+      }
+      await loadBarangays();
+    }
+
+    async function deleteBarangay(provinceId, cityId, barangayId) {
+      if (!confirm('Delete this barangay?')) return;
+      const res = await ApiClient.delete(`/api/v1/barangays/${provinceId}/${cityId}/${barangayId}`);
+      if (!res.ok && res.status !== 204) {
+        alert('Delete failed:\n' + JSON.stringify(res.data || res.error, null, 2));
+        return;
+      }
+      await loadBarangays();
+    }
+
+    // Cascade: when province filter changes, reload cities for that province
+    document.getElementById('provinceFilter').addEventListener('change', async (e) => {
+      await loadCities(e.target.value || null, 'cityFilter', true);
+    });
+
+    // Cascade: when create-province changes, reload cities for that province
+    document.getElementById('createProvince').addEventListener('change', async (e) => {
+      await loadCities(e.target.value, 'createCity', false);
+    });
+
+    document.getElementById('btnLoad').addEventListener('click', () => { currentPage = 1; loadBarangays(); });
+    document.getElementById('btnPrev').addEventListener('click', () => { currentPage--; loadBarangays(); });
+    document.getElementById('btnNext').addEventListener('click', () => { currentPage++; loadBarangays(); });
+    document.getElementById('btnCreate').addEventListener('click', createBarangay);
+
+    // Bootstrap
+    (async () => {
+      await loadProvinces();
+      await loadCities(null, 'cityFilter', true);
+      // Pre-load cities for the first province in the create form
+      const firstProvince = document.getElementById('createProvince').value;
+      if (firstProvince) await loadCities(firstProvince, 'createCity', false);
+      await loadBarangays();
+    })();
+  </script>
+</body>
+</html>

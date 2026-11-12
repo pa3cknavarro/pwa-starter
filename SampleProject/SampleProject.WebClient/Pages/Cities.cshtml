@@ -1,0 +1,42 @@
+@page
+@model CitiesModel
+@{
+    ViewData["Title"] = "Cities";
+}
+
+<h1>Cities</h1>
+
+@if (!string.IsNullOrEmpty(Model.Error))
+{
+    <div class="alert alert-danger">@Model.Error</div>
+}
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-auto">
+        <select asp-for="ProvinceId" asp-items="Model.ProvinceOptions" class="form-select"></select>
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-outline-primary">Filter</button>
+    </div>
+</form>
+
+@if (Model.Result is not null)
+{
+    <table class="table table-sm table-striped">
+        <thead>
+            <tr><th>City</th><th>Zip</th><th>Province Id</th><th>Created</th></tr>
+        </thead>
+        <tbody>
+        @foreach (var c in Model.Result.Items)
+        {
+            <tr>
+                <td>@c.CityName</td>
+                <td>@c.ZipCode</td>
+                <td class="small text-muted">@c.ProvinceId</td>
+                <td>@c.CreatedOn.ToLocalTime().ToString("g")</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+    <p class="text-muted small">Page @Model.Result.Page of @Model.Result.TotalPages · @Model.Result.TotalCount total</p>
+}

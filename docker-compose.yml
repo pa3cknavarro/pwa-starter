@@ -1,17 +1,14 @@
 services:
   postgres:
-    image: postgres:17
-    container_name: ecommerce-postgres
+    image: postgres:18
+    container_name: postgres-server
     restart: unless-stopped
-
     environment:
-      POSTGRES_DB: carovet
-      POSTGRES_USER: sa
-      POSTGRES_PASSWORD: P@ssw0rd7852
-
+      POSTGRES_DB: ecommerce_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: P@ssw0rd
     ports:
       - "5432:5432"
-
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
